@@ -8,10 +8,6 @@ A focused, offline code editor for Android. Real files, a real editor (CodeMirro
 first-class **Luau** support with a native runtime built from the official Luau sources. No account, no
 network, no permissions.
 
-## Screenshots
-
-Add real screenshots to `docs/screenshots/` and link them here before publishing a release.
-
 ## Features
 
 **Opens from anywhere** — ByteCode appears in Android's *Open with* / *Edit with* chooser for any file
