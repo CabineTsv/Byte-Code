@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bc_background">#FFFFFFFF</color>
+    <color name="bc_sidebar">#FFF6F7F9</color>
+    <color name="bc_toolbar">#FFFFFFFF</color>
+    <color name="bc_panel">#FFF6F7F9</color>
+    <color name="bc_surface_raised">#FFFFFFFF</color>
+    <color name="bc_border">#FFE6E8EC</color>
+    <color name="bc_border_strong">#FFC5CAD3</color>
+    <color name="bc_text">#FF1F2328</color>
+    <color name="bc_text_secondary">#FF6A7280</color>
+    <color name="bc_selection">#FFEAEEF4</color>
+    <color name="bc_ripple">#14000000</color>
+    <color name="bc_key">#FFEEF0F4</color>
+    <color name="bc_error">#FFCF3B35</color>
+    <color name="bc_warning">#FF9A6700</color>
+    <color name="bc_success">#FF1A7F37</color>
+    <color name="bc_info">#FF0969DA</color>
+    <color name="bc_tab_inactive">#FFF6F7F9</color>
+    <color name="bc_accent">#FF4EA1FF</color>
+    <color name="bc_on_accent">#FF0B1B2E</color>
+    <color name="bc_folder">#FF7F96BC</color>
+    <color name="bc_icon_neutral">#FF7A828F</color>
+</resources>
