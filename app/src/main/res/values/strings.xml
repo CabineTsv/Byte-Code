@@ -17,7 +17,7 @@
     <string name="action_discard">Discard</string>
     <string name="action_dont_save">Don’t save</string>
     <string name="action_exit">Exit</string>
-    <string name="action_find">Find and replace</string>
+    <string name="action_find">Search</string>
     <string name="action_fold_all">Fold all</string>
     <string name="action_goto_line">Go to line</string>
     <string name="action_increase_font">Increase font size</string>
@@ -158,4 +158,15 @@
     <string name="message_external_unreadable">ByteCode can\'t read this file directly. Use Open file instead.</string>
     <string name="welcome_recent">RECENT</string>
     <string name="welcome_tagline">A focused code editor for your phone.</string>
+    <string name="action_edit_tools">Edit tools</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_select_line">Select line</string>
+    <string name="action_cut">Cut</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_paste">Paste</string>
+    <string name="action_duplicate_line">Duplicate line</string>
+    <string name="action_delete_line">Delete line</string>
+    <string name="message_copied">Copied to clipboard</string>
+    <string name="message_cut">Cut to clipboard</string>
+    <string name="message_copy_failed">Could not copy to the clipboard</string>
 </resources>
