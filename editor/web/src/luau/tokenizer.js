@@ -11,6 +11,7 @@ import {
   KEYWORDS, CONTROL_KEYWORDS, STATEMENT_KEYWORDS, BUILTIN_TYPES, GLOBAL_FUNCTIONS, CUSTOM_GLOBAL_FUNCTIONS, LIBRARY_NAMES,
   LIBRARY_MEMBERS, ROBLOX_GLOBALS, ROBLOX_GLOBAL_FUNCTIONS, ROBLOX_METHODS, ROBLOX_CLASS_NAMES,
 } from "./data.js";
+import { copyBlockState, startLine, markLine, openBlock, closeBlock, indentColumns } from "../block-indent.js";
 
 const MODE_CODE = 0;
 const MODE_BLOCK_COMMENT = 1;
@@ -19,6 +20,7 @@ const MODE_BACKTICK = 3;
 const MODE_QUOTED_CONTINUATION = 4;
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*/;
+const EXPRESSION_LEADERS = new Set(["return", "and", "or", "not"]);
 // What may follow an identifier directly when it is being called: f(), f"x", f{...}, f[[x]], f`x`.
 const CALL_FOLLOWS = /^\s*(?:[("'`{]|\[=*\[)/;
 
@@ -28,7 +30,9 @@ export function startState() {
     level: 0,            // number of '=' in the current long bracket
     quote: "",           // quote character of a string that continues on the next line
     interp: [],          // brace counters of open `{expr}` interpolations
-    depth: 0,            // open blocks and brackets (used for indentation)
+    depth: 0,            // open blocks and brackets
+    levels: [],          // indent level of the line each open block or bracket started on
+    lineLevel: -1,       // indent level of the line being read, -1 until its first token
     typeMode: false,     // currently inside a type expression
     typeDepth: 0,        // nesting of () {} [] inside the type expression
     angle: 0,            // nesting of <> inside the type expression
@@ -38,6 +42,7 @@ export function startState() {
     declTail: false,     // the previous token was the last segment of a function name
     localDecl: false,    // reading names declared by `local`
     elseifPending: false,
+    ifExpr: 0,           // `if` expressions (no closing `end`) waiting for their `then`
     prev: "",            // kind of the previous significant token
     prevText: "",
     baseIdent: "",       // identifier in front of the last '.', for `math.floor` style lookups
@@ -45,7 +50,17 @@ export function startState() {
 }
 
 export function copyState(state) {
-  return Object.assign({}, state, { interp: state.interp.slice() });
+  return copyBlockState(state, Object.assign({}, state, { interp: state.interp.slice() }));
+}
+
+function open(state) {
+  state.depth++;
+  openBlock(state);
+}
+
+function close(state) {
+  state.depth = Math.max(0, state.depth - 1);
+  closeBlock(state);
 }
 
 // Records the token that was just read and returns its style.
@@ -146,7 +161,7 @@ function readKeyword(state, word) {
   switch (word) {
     case "function": {
       done(state, "kw", word, "");
-      state.depth++;
+      open(state);
       state.funcName = true;
       return "definitionKeyword";
     }
@@ -158,13 +173,21 @@ function readKeyword(state, word) {
     case "do":
     case "repeat": {
       done(state, "kw", word, "");
-      state.depth++;
+      open(state);
       return "controlKeyword";
+    }
+    case "if": {
+      const expression = state.prev === "op" || state.prev === "open" || state.prev === "comma" ||
+        (state.prev === "kw" && EXPRESSION_LEADERS.has(state.prevText));
+      const style = done(state, "kw", word, "controlKeyword");
+      if (expression) state.ifExpr++;
+      return style;
     }
     case "then": {
       done(state, "kw", word, "");
       if (state.elseifPending) state.elseifPending = false;
-      else state.depth++;
+      else if (state.ifExpr > 0) state.ifExpr--;
+      else open(state);
       return "controlKeyword";
     }
     case "elseif": {
@@ -175,7 +198,7 @@ function readKeyword(state, word) {
     case "end":
     case "until": {
       done(state, "kw", word, "");
-      state.depth = Math.max(0, state.depth - 1);
+      close(state);
       return "controlKeyword";
     }
     case "nil":
@@ -297,14 +320,14 @@ function readTypeToken(stream, state) {
   if (ch === "(" || ch === "{" || ch === "[") {
     stream.next();
     state.typeDepth++;
-    state.depth++;
+    open(state);
     state.typeExpect = true;
     return done(state, "open", ch, ch === "{" ? "brace" : "bracket");
   }
   if (ch === ")" || ch === "}" || ch === "]") {
     stream.next();
     state.typeDepth = Math.max(0, state.typeDepth - 1);
-    state.depth = Math.max(0, state.depth - 1);
+    close(state);
     state.typeExpect = false;
     return done(state, "close", ch, ch === "}" ? "brace" : "bracket");
   }
@@ -455,15 +478,15 @@ function readCodeToken(stream, state) {
       return done(state, "op", ">", "compareOperator");
     case "(":
     case "[":
-      state.depth++;
+      open(state);
       return done(state, "open", ch, "bracket");
     case ")":
     case "]":
-      state.depth = Math.max(0, state.depth - 1);
+      close(state);
       return done(state, "close", ch, "bracket");
     case "{":
       if (state.interp.length > 0) state.interp[state.interp.length - 1]++;
-      state.depth++;
+      open(state);
       return done(state, "open", "{", "brace");
     case "}": {
       if (state.interp.length > 0) {
@@ -475,7 +498,7 @@ function readCodeToken(stream, state) {
         }
         state.interp[top]--;
       }
-      state.depth = Math.max(0, state.depth - 1);
+      close(state);
       return done(state, "close", "}", "brace");
     }
     case ",":
@@ -490,6 +513,7 @@ function readCodeToken(stream, state) {
 }
 
 export function token(stream, state) {
+  if (stream.sol()) startLine(state);
   switch (state.mode) {
     case MODE_BLOCK_COMMENT:
       return readLongBracket(stream, state, "comment");
@@ -504,6 +528,7 @@ export function token(stream, state) {
   }
 
   if (stream.eatSpace()) return null;
+  markLine(state, stream);
 
   let match;
   if ((match = stream.match(/^--\[(=*)\[/))) {
@@ -527,9 +552,7 @@ export function token(stream, state) {
 // Indentation for the line that is about to be typed or reindented.
 export function indent(state, textAfter, context) {
   if (state.mode !== MODE_CODE) return null;
-  let depth = state.depth;
-  if (/^\s*(?:end\b|else\b|elseif\b|until\b|[)}\]])/.test(textAfter)) depth -= 1;
-  return Math.max(0, depth) * context.unit;
+  return indentColumns(state, textAfter, context.unit);
 }
 
 export const languageData = {
