@@ -244,6 +244,28 @@ def resource_check():
 
 resource_check()
 
+
+# 12. A resource name may only be defined once per values directory (Gradle fails the build otherwise)
+def duplicate_resource_check():
+    import xml.etree.ElementTree as ET
+    res = ROOT + "/app/src/main/res"
+    kinds = {"string-array": "array", "integer-array": "array", "array": "array"}
+    for values_dir in sorted(glob.glob(res + "/values*")):
+        seen = collections.defaultdict(list)
+        for path in sorted(glob.glob(values_dir + "/*.xml")):
+            for element in ET.parse(path).getroot():
+                name = element.get("name")
+                if not name or element.tag in ("item", "eat-comment"):
+                    continue
+                kind = kinds.get(element.tag, element.tag)
+                key = (kind, name.replace(".", "_") if kind == "style" else name)
+                seen[key].append(os.path.basename(path))
+        for (kind, name), where in sorted(seen.items()):
+            if len(where) > 1:
+                problems.append(f"{os.path.basename(values_dir)}: {kind} '{name}' is defined {len(where)} times ({', '.join(where)})")
+
+duplicate_resource_check()
+
 print(f"\nchecked {len(files)} Kotlin files")
 if problems:
     print("\nPROBLEMS:")
