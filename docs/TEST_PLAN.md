@@ -35,6 +35,14 @@ failures with the Logcat output and, for editor problems, the **Log** tab of the
 - [ ] Save, Save all, autosave (after delay / when leaving the file)
 - [ ] Kill the app while a file has unsaved changes → restore prompt on the next open
 - [ ] Find and replace, go to line, fold/unfold, toggle comment, indent/outdent, auto-indent, bracket matching, auto-close
+- [ ] Typing `local ok, err = pcall(function()` then Enter indents the next line by one level; typing `end)` returns to the first level (Luau and plain Lua files)
+- [ ] Nested callbacks, tables with functions and multi-line call arguments indent and dedent correctly
+- [ ] Edit tools button in the toolbar opens a grouped menu; the on-screen keyboard stays open while using it
+- [ ] Select all, Select line, Cut, Copy and Paste work, including pasting text copied from another app; Cut and Paste are greyed out in a read-only file
+- [ ] With nothing selected, Copy and Cut take the whole current line
+- [ ] Search, Go to line, Toggle comment, Duplicate line and Delete line work from the Edit tools menu
+- [ ] Tapping a line number selects that whole line; pressing Backspace then removes the line
+- [ ] Back closes the Edit tools menu before doing anything else
 - [ ] Word wrap, line numbers, font size/family, imported font, tab size, spaces/tabs
 - [ ] Soft-keyboard: the caret stays visible; the extra keys do not close the keyboard
 - [ ] Hardware keyboard: Ctrl+S, Ctrl+P, Ctrl+Shift+P, Ctrl+B, Ctrl+J, F5
