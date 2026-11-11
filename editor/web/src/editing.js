@@ -54,3 +54,24 @@ export function backspaceCommand(opening = [], { indentStops = true } = {}) {
     return true;
   };
 }
+
+export function clipboardPayload(state, cut) {
+  const ranges = state.selection.ranges.filter((range) => !range.empty);
+  if (ranges.length > 0) {
+    const text = ranges.map((range) => state.sliceDoc(range.from, range.to)).join(state.lineBreak);
+    return { text, removeSelection: cut && !state.readOnly, removeRange: null };
+  }
+  if (state.doc.length === 0) return { text: "", removeSelection: false, removeRange: null };
+  const line = state.doc.lineAt(state.selection.main.head);
+  const end = Math.min(line.to + 1, state.doc.length);
+  const lastLine = end === line.to;
+  const text = state.sliceDoc(line.from, end) + (lastLine ? state.lineBreak : "");
+  const from = lastLine && line.from > 0 ? line.from - 1 : line.from;
+  const removeRange = cut && !state.readOnly ? { from, to: end } : null;
+  return { text, removeSelection: false, removeRange };
+}
+
+export function lineRange(doc, pos) {
+  const line = doc.lineAt(pos);
+  return { from: line.from, to: Math.min(line.to + 1, doc.length) };
+}
