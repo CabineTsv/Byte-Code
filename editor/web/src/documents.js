@@ -231,6 +231,12 @@ export class DocumentStore {
     this.view.focus();
   }
 
+  pasteText(text) {
+    if (!this.view || typeof text !== "string" || text === "") return;
+    this.view.dispatch({ ...this.view.state.replaceSelection(text), scrollIntoView: true, userEvent: "input.paste" });
+    this.view.focus();
+  }
+
   revealPosition(id, line, column, focus) {
     if (id && id !== this.activeId) this.activate(id);
     if (!this.view) return;
