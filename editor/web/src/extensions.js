@@ -8,7 +8,7 @@ import {
 import {
   defaultKeymap, history, historyKeymap, indentWithTab, insertNewline, undo, redo, selectAll, indentMore,
   indentLess, toggleComment, insertTab, cursorCharLeft, cursorCharRight, cursorLineUp, cursorLineDown,
-  cursorLineBoundaryBackward, cursorLineBoundaryForward, deleteLine, copyLineDown, moveLineUp, moveLineDown,
+  cursorLineBoundaryBackward, cursorLineBoundaryForward, deleteLine, copyLineDown, moveLineUp, moveLineDown, selectLine,
 } from "@codemirror/commands";
 import {
   indentOnInput, bracketMatching, foldGutter, foldKeymap, indentUnit, syntaxHighlighting, foldAll, unfoldAll,
@@ -21,7 +21,8 @@ import { createTheme, createHighlight } from "./themes.js";
 import { editorScrollbars } from "./scrollbars.js";
 import { identifierIndexExtension } from "./identifiers.js";
 import { indentGuides } from "./indent-guides.js";
-import { backspaceCommand } from "./editing.js";
+import { backspaceCommand, clipboardPayload, lineRange } from "./editing.js";
+import { post } from "./host.js";
 
 export const compartments = {
   language: new Compartment(),
@@ -90,7 +91,9 @@ function closeBracketsExtension(settings) {
 // One extension per compartment for the given settings.
 export function settingsExtensionMap(settings) {
   return {
-    lineNumbers: settings.lineNumbers ? [lineNumbers(), highlightActiveLineGutter()] : [],
+    lineNumbers: settings.lineNumbers
+      ? [lineNumbers({ domEventHandlers: { mousedown: selectLineFromGutter } }), highlightActiveLineGutter()]
+      : [],
     activeLine: settings.highlightActiveLine ? highlightActiveLine() : [],
     wrap: settings.wordWrap ? EditorView.lineWrapping : [],
     tabs: [
@@ -194,10 +197,35 @@ export function createBaseExtensions({ post, onUpdate }) {
   ];
 }
 
+function selectLineFromGutter(view, block, event) {
+  if (event.button) return false;
+  const range = lineRange(view.state.doc, block.from);
+  view.dispatch({ selection: { anchor: range.from, head: range.to }, userEvent: "select" });
+  view.focus();
+  return true;
+}
+
+function clipboardAction(cut) {
+  return (view) => {
+    const payload = clipboardPayload(view.state, cut);
+    if (!payload.text) return false;
+    post({ type: "clipboard", text: payload.text, cut });
+    if (payload.removeSelection) {
+      view.dispatch({ ...view.state.replaceSelection(""), scrollIntoView: true, userEvent: "delete.cut" });
+    } else if (payload.removeRange) {
+      view.dispatch({ changes: payload.removeRange, userEvent: "delete.cut" });
+    }
+    return true;
+  };
+}
+
 const ACTIONS = {
   undo,
   redo,
   selectAll,
+  selectLine,
+  copy: clipboardAction(false),
+  cut: clipboardAction(true),
   indentMore,
   indentLess,
   insertTab,
