@@ -194,8 +194,7 @@ test("block depth drives indentation", () => {
   ];
   const depths = tokenize(source.join("\n")).rows.map((r) => r.depth);
   assert.deepEqual(depths, [1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1, 2, 1, 2, 1, 0]);
-  const state = startState();
-  state.depth = 2;
+  const state = tokenize("local function f(a)\n  if a then").state;
   assert.equal(indent(state, "end", { unit: 4 }), 4);
   assert.equal(indent(state, "print(1)", { unit: 4 }), 8);
   assert.equal(indent(state, "else", { unit: 2 }), 2);
