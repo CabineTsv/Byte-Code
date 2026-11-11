@@ -52,6 +52,7 @@ export function createHost(store) {
     requestText: (c) => store.requestText(c.id, c.requestId),
     applySettings: (c) => store.applySettings(c.settings),
     insertText: (c) => store.insertText(c.text),
+    pasteText: (c) => store.pasteText(c.text),
     action: (c) => store.runAction(c.name),
     revealPosition: (c) => store.revealPosition(c.id, c.line, c.column, c.focus),
     focus: () => store.focus(),
