@@ -10,7 +10,7 @@ b3e3ad0eea8ef2724c129ae3e3b5cb7100198c948fc5d035990a3c7d910486d5  app/proguard-r
 af61188ebaceeb0086ac2dad71dda6e4b547ed8d9a9c12c0db51a807eb4a382d  app/src/main/AndroidManifest.xml
 90f3a82022c2f28fcd93d55088f49c0d75f88b63844bbd93bc36de9fb82e5beb  app/src/main/java/dev/bytecode/app/AppCommand.kt
 319a4045d58b8e9d026f9fc9c2b85df38f8955b0093bfd93d5876a14882b2f15  app/src/main/java/dev/bytecode/app/ByteCodeApp.kt
-45261a49921fe94b6a81802478f6404f701a0f2e5eaeb1b29777f47395e047c0  app/src/main/java/dev/bytecode/app/MainActivity.kt
+27a0995e06d3c6a2f6203e244163eb5fefa4b49bce7fa40ab7a9f8ba7085e57d  app/src/main/java/dev/bytecode/app/MainActivity.kt
 8b6fb9d064a86d7078ebb2417225369d8a964fdbd87d4d62571a4c3e8c1df6ad  app/src/main/java/dev/bytecode/app/documents/DocumentManager.kt
 8e54ab1f86178eec39b90bd9912cedd2e0b70decfbf3e6252c1afb47ccfb2cf2  app/src/main/java/dev/bytecode/app/documents/OpenDocument.kt
 84e724d32f048ff55c170d3108bd64e8bd8457f82c0494a228fdea7b0b819af3  app/src/main/java/dev/bytecode/app/documents/RecoveryStore.kt
@@ -129,7 +129,7 @@ ac70222387cccdaf203b43aa1b012bd085eec8c94d3f7b0a9a6f4b34d34e7794  app/src/main/r
 144a92eabc3710fccc79b5702fb81741c04799ab611e91b982c3fbe48043e1a4  app/src/main/res/values/arrays.xml
 8c8f3b131acc2e0d1f2d86ed6748ef40bc0a82670630aa33c76d47157e43f0e0  app/src/main/res/values/colors.xml
 79b1e7ef627f7c024ab303b5821f467257031b9dc636d73e4582821f87adbddb  app/src/main/res/values/dimens.xml
-b557ef4a481c0b1c221db0b6ecdb3983efc3f1e09774a9e9b4a41126afe4393e  app/src/main/res/values/strings.xml
+101d429b3da03895e121700bc82d22a0e9a0546ce0eba54156ed98cf94e016fd  app/src/main/res/values/strings.xml
 8c6b58339a68c31064b63542a2e3c0f5dc59a8d728c9a3f561d09eccdfdb45f4  app/src/main/res/values/themes.xml
 04050feb5f25abb43bc0bd337b136247c7d8378310bc6441efefec4788fef7f3  app/src/main/res/xml/preferences.xml
 e39eca5ad0d513047bcb0054428b3cce5c92baaaebd42da18426a67defbeedd1  build.gradle.kts
@@ -211,5 +211,5 @@ fe9866093a7c35f8a46a2c44aa8d9bf6afd2655ea943e97cac0702b9b0fdd1e9  scripts/ci/che
 eedefab16ab7817e76735a500d6a058677514f1fb8dca4a78423520bb09390b1  scripts/ci/digest.py
 d047fe9e8b5237c32c73037681e59bf59635a0e121405146a645884743989b75  scripts/ci/setup-android-sdk.sh
 2f38ff8d5869e8c2cd6abf25d9878e337aac9edccf695f5074ba613b2dc54d90  scripts/ci/test-ci-scripts.sh
-4d318a4364759ffa2e1ad84347fc777f5a13c4a1f5eca574eb9d4de2ab63fd0c  scripts/static-check.py
+cf8c79adb2cd8af0b5c7481c501f0ebc6d82b2f7c7911ece94045d949dfccc4b  scripts/static-check.py
 b8d1ce3fc859d3c63a12a1da6c0f054464b4c65dbbcf5c669be080aadf9e7875  settings.gradle.kts
