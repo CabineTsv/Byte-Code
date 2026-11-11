@@ -316,6 +316,10 @@ class CodeEditorView @JvmOverloads constructor(
         send(command("insertText").put("text", text))
     }
 
+    fun pasteText(text: String) {
+        send(command("pasteText").put("text", text))
+    }
+
     /** Runs an editor action: undo, redo, find, replace, gotoLine, toggleComment, foldAll, cursorLeft, ... */
     fun runAction(name: String) {
         send(command("action").put("name", name))
@@ -403,6 +407,7 @@ class CodeEditorView @JvmOverloads constructor(
             )
             "diagnostics" -> dispatchEvent(EditorEvent.Diagnostics(docId, parseDiagnostics(message.optJSONArray("items"))))
             "command" -> dispatchEvent(EditorEvent.Command(message.optString("name")))
+            "clipboard" -> dispatchEvent(EditorEvent.Clipboard(message.optString("text"), message.optBoolean("cut")))
             "log" -> dispatchEvent(EditorEvent.Log(message.optString("level", "info"), message.optString("message")))
         }
     }
