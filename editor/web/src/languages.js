@@ -3,6 +3,7 @@
 import { StreamLanguage } from "@codemirror/language";
 import { EditorState } from "@codemirror/state";
 import { wordCompletionSource, caseInsensitiveWordCompletionSource } from "./words.js";
+import { withBlockIndent } from "./block-indent.js";
 
 // Every language except Luau (which has its own source) and plain text also completes words from the document.
 const wordCompletion = EditorState.languageData.of(() => [{ autocomplete: wordCompletionSource }]);
@@ -34,7 +35,7 @@ const LOADERS = {
   ruby: legacy(() => import("@codemirror/legacy-modes/mode/ruby"), (m) => m.ruby),
   go: legacy(() => import("@codemirror/legacy-modes/mode/go"), (m) => m.go),
   shell: legacy(() => import("@codemirror/legacy-modes/mode/shell"), (m) => m.shell),
-  lua: legacy(() => import("@codemirror/legacy-modes/mode/lua"), (m) => m.lua),
+  lua: legacy(() => import("@codemirror/legacy-modes/mode/lua"), (m) => withBlockIndent(m.lua)),
   yaml: legacy(() => import("@codemirror/legacy-modes/mode/yaml"), (m) => m.yaml),
   luau: async () => (await import("./luau/language.js")).luau(),
 };
