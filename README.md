@@ -26,6 +26,9 @@ A welcome screen with *Open folder*, *Open file* and recent files shows when no 
 - Basic autocomplete: language-specific where the language pack provides it, plus words from the document
 - Font size, font family (system, Courier, or an imported .ttf/.otf), tab size, spaces/tabs, word wrap, themes
 - Extra-keys bar (Tab, undo/redo, arrows with key repeat, code symbols) that never closes the soft keyboard
+- **Edit tools** menu in the toolbar: select all, select line, cut, copy, paste, search, go to line, toggle comment,
+  duplicate line and delete line, grouped in one place. Tap a line number to select the whole line.
+- Smart indentation for Lua and Luau: `pcall(function()` indents one level, not two
 - Autosave (off / after a delay / when leaving the file), crash-safe recovery copies of unsaved text
 
 **Console** — Output, Problems, Search and Log channels; resizable and collapsible; clickable errors jump to the line
@@ -161,11 +164,11 @@ the artifact. For signed releases add the four `BYTECODE_*` secrets described ab
 
 ## Project status
 
-Version **1.0.0**. CI (`.github/workflows/build.yml`) builds the APK on every push; open **Actions → Build ByteCode**
+Version **1.1.0**. CI (`.github/workflows/build.yml`) builds the APK on every push; open **Actions → Build ByteCode**
 and download the artifact.
 
 **Checks that run without an Android toolchain** (also part of the `quick-tests` CI job):
-- 55 JavaScript unit tests: Luau tokenizer, completion analysis, editor/bridge glue, identifiers, scrollbars
+- 86 JavaScript unit tests: Luau tokenizer, indentation, clipboard and line selection, completion analysis, editor/bridge glue, identifiers, scrollbars
 - Native UTF-8/UTF-16 conversion test under AddressSanitizer/UBSan; native C++ type-check against API stubs
 - Every Android XML resource is well-formed and every `R.*` reference resolves; Kotlin imports, JNI names,
   enum values and listener implementations match (`scripts/static-check.py`)
