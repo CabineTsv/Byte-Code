@@ -6,19 +6,24 @@
         android:id="@+id/action_run"
         android:icon="@drawable/ic_play"
         android:title="@string/action_run"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_save"
         android:icon="@drawable/ic_save"
         android:title="@string/action_save"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_edit_tools"
+        android:icon="@drawable/ic_edit_tools"
+        android:title="@string/action_edit_tools"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_find"
-        android:icon="@drawable/ic_search"
         android:title="@string/action_find"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_command_palette"
