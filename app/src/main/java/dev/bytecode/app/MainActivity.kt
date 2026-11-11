@@ -567,7 +567,7 @@ class MainActivity :
         val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         try {
             manager.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_name), event.text))
-            statusMessage.text = getString(if (event.cut) R.string.message_cut else R.string.message_copied)
+            statusMessage.text = getString(if (event.cut) R.string.message_clipboard_cut else R.string.message_clipboard_copied)
         } catch (error: RuntimeException) {
             showMessage(getString(R.string.message_copy_failed))
         }
