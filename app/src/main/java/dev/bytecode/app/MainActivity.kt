@@ -1,6 +1,9 @@
 package dev.bytecode.app
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
@@ -49,6 +52,7 @@ import dev.bytecode.app.ui.ConsoleChannel
 import dev.bytecode.app.ui.ConsoleLine
 import dev.bytecode.app.ui.ConsolePanel
 import dev.bytecode.app.ui.Dialogs
+import dev.bytecode.app.ui.EditToolsPopup
 import dev.bytecode.app.ui.ExplorerController
 import dev.bytecode.app.ui.FileIcons
 import dev.bytecode.app.ui.ExtraKeysBar
@@ -122,6 +126,7 @@ class MainActivity :
     private var needsRecreate = false
     private var searchJob: Job? = null
     private var sessionRestored = false
+    private val editTools by lazy { EditToolsPopup(this) { command -> execute(command) } }
     private var pendingIncoming: List<Uri> = emptyList()
     private lateinit var welcomePanel: View
     private lateinit var welcomeRecentTitle: TextView
@@ -300,6 +305,7 @@ class MainActivity :
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 when {
+                    editTools.isShowing -> editTools.dismiss()
                     drawer.isDrawerOpen(GravityCompat.START) -> drawer.closeDrawer(GravityCompat.START)
                     documents.documents.any { it.dirty } -> confirmExit()
                     else -> finish()
@@ -397,6 +403,7 @@ class MainActivity :
         val command = when (id) {
             R.id.action_run -> if (runManager.isRunning) AppCommand.STOP else AppCommand.RUN
             R.id.action_save -> AppCommand.SAVE
+            R.id.action_edit_tools -> AppCommand.EDIT_TOOLS
             R.id.action_find -> AppCommand.FIND
             R.id.action_command_palette -> AppCommand.COMMAND_PALETTE
             R.id.action_quick_open -> AppCommand.QUICK_OPEN
@@ -428,6 +435,7 @@ class MainActivity :
         }
         menu.findItem(R.id.action_save)?.isEnabled = active != null && active.dirty && !active.readOnly
         menu.findItem(R.id.action_find)?.isEnabled = active != null
+        menu.findItem(R.id.action_edit_tools)?.isEnabled = active != null
     }
 
     private fun updateStatus() {
@@ -463,6 +471,9 @@ class MainActivity :
         return when (command) {
             AppCommand.RUN -> active != null && !runManager.isRunning && runManager.canRun(active.languageId)
             AppCommand.STOP -> runManager.isRunning
+            AppCommand.EDIT_TOOLS, AppCommand.SELECT_ALL, AppCommand.SELECT_LINE, AppCommand.COPY -> active != null
+            AppCommand.CUT, AppCommand.PASTE, AppCommand.DUPLICATE_LINE, AppCommand.DELETE_LINE ->
+                active != null && !active.readOnly
             AppCommand.SAVE, AppCommand.FIND, AppCommand.REPLACE, AppCommand.GOTO_LINE, AppCommand.TOGGLE_COMMENT,
             AppCommand.FOLD_ALL, AppCommand.UNFOLD_ALL, AppCommand.UNDO, AppCommand.REDO, AppCommand.CLOSE_TAB -> active != null
             AppCommand.SAVE_ALL, AppCommand.CLOSE_ALL_TABS, AppCommand.NEXT_TAB, AppCommand.PREVIOUS_TAB ->
@@ -484,6 +495,14 @@ class MainActivity :
             AppCommand.REPLACE -> editorView.runAction("replace")
             AppCommand.GOTO_LINE -> editorView.runAction("gotoLine")
             AppCommand.TOGGLE_COMMENT -> editorView.runAction("toggleComment")
+            AppCommand.EDIT_TOOLS -> showEditTools()
+            AppCommand.SELECT_ALL -> editorView.runAction("selectAll")
+            AppCommand.SELECT_LINE -> editorView.runAction("selectLine")
+            AppCommand.CUT -> editorView.runAction("cut")
+            AppCommand.COPY -> editorView.runAction("copy")
+            AppCommand.PASTE -> pasteFromClipboard()
+            AppCommand.DUPLICATE_LINE -> editorView.runAction("duplicateLine")
+            AppCommand.DELETE_LINE -> editorView.runAction("deleteLine")
             AppCommand.FOLD_ALL -> editorView.runAction("foldAll")
             AppCommand.UNFOLD_ALL -> editorView.runAction("unfoldAll")
             AppCommand.UNDO -> editorView.runAction("undo")
@@ -517,6 +536,49 @@ class MainActivity :
             AppCommand.SETTINGS -> startActivity(Intent(this, SettingsActivity::class.java))
             AppCommand.ABOUT -> showAbout()
         }
+    }
+
+    private fun showEditTools() {
+        val active = documents.active ?: return
+        val writable = !active.readOnly
+        val groups = listOf(
+            listOf(
+                EditToolsPopup.Tool(AppCommand.SELECT_ALL, R.drawable.ic_tool_select_all),
+                EditToolsPopup.Tool(AppCommand.SELECT_LINE, R.drawable.ic_tool_select_line),
+                EditToolsPopup.Tool(AppCommand.CUT, R.drawable.ic_tool_cut, writable),
+                EditToolsPopup.Tool(AppCommand.COPY, R.drawable.ic_tool_copy),
+                EditToolsPopup.Tool(AppCommand.PASTE, R.drawable.ic_tool_paste, writable)
+            ),
+            listOf(
+                EditToolsPopup.Tool(AppCommand.FIND, R.drawable.ic_search),
+                EditToolsPopup.Tool(AppCommand.GOTO_LINE, R.drawable.ic_tool_goto)
+            ),
+            listOf(
+                EditToolsPopup.Tool(AppCommand.TOGGLE_COMMENT, R.drawable.ic_tool_comment, writable),
+                EditToolsPopup.Tool(AppCommand.DUPLICATE_LINE, R.drawable.ic_tool_duplicate, writable),
+                EditToolsPopup.Tool(AppCommand.DELETE_LINE, R.drawable.ic_tool_delete_line, writable)
+            )
+        )
+        val anchor = toolbar.findViewById<View>(R.id.action_edit_tools) ?: toolbar
+        editTools.show(anchor, groups)
+    }
+
+    private fun handleClipboard(event: EditorEvent.Clipboard) {
+        val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        try {
+            manager.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_name), event.text))
+            statusMessage.text = getString(if (event.cut) R.string.message_cut else R.string.message_copied)
+        } catch (error: RuntimeException) {
+            showMessage(getString(R.string.message_copy_failed))
+        }
+    }
+
+    private fun pasteFromClipboard() {
+        val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = manager.primaryClip ?: return
+        if (clip.itemCount == 0) return
+        val text = clip.getItemAt(0).coerceToText(this).toString()
+        if (text.isNotEmpty()) editorView.pasteText(text)
     }
 
     private fun handleEditorCommand(name: String) {
@@ -953,6 +1015,7 @@ class MainActivity :
             is EditorEvent.CursorMoved -> if (event.docId == documents.activeId) updateCursor(event)
             is EditorEvent.LintRequest -> handleLintRequest(event)
             is EditorEvent.Command -> handleEditorCommand(event.name)
+            is EditorEvent.Clipboard -> handleClipboard(event)
             is EditorEvent.Log ->
                 console.append(ConsoleChannel.LOG, ConsoleLine("[editor] ${event.message}", logSeverity(event.level), null))
             else -> Unit
