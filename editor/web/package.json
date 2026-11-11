@@ -1,6 +1,6 @@
 {
   "name": "bytecode-editor",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "CodeMirror 6 editor bundle that runs inside ByteCode's WebView",
