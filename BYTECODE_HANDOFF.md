@@ -2,6 +2,14 @@
 
 > Read this file first in any new chat about ByteCode. It describes the **real** state of the project at snapshot `4efe7e7bca0e22c6` (**ByteCode upd2**) and keeps three things apart: what *exists in source*, what was *actually verified*, and what is only *planned or assumed*. Nothing here claims that the app has been compiled or run: the only CI run so far stopped in the Android SDK setup step, before Gradle started.
 
+## 0.2 Update: V1.1.0 (indentation fix and edit tools)
+
+- **Indentation bug:** `src/luau/tokenizer.js` used one running `depth`, so `pcall(function()` (a `(`, `function` and `()` on one line) added two levels. New shared module `editor/web/src/block-indent.js`: every open block or bracket stores the indent level of the line it opened on (`levels`), a line's level is the top entry plus one (or the top entry itself when the line starts with `end`/`else`/`elseif`/`until`/`)`/`}`/`]`). The Luau tokenizer uses it directly (`state.depth` is still the real stack depth for tests); plain Lua wraps the legacy CodeMirror mode with `withBlockIndent` in `src/languages.js`. Tests: `test/block-indent.test.mjs`.
+- **If expressions:** an `if` that follows `=`, `(`, `{`, `,`, an operator or `return`/`and`/`or`/`not` is an expression; `state.ifExpr` makes its `then` skip opening a block. `else if` inside an if expression is not recognised (use `elseif`).
+- **Edit tools:** `AppCommand` gained `EDIT_TOOLS`, `SELECT_ALL`, `SELECT_LINE`, `CUT`, `COPY`, `PASTE`, `DUPLICATE_LINE`, `DELETE_LINE`. `ui/EditToolsPopup.kt` is a non-focusable `PopupWindow` (keeps the soft keyboard up). Copy/cut run in JS (`clipboardPayload` in `src/editing.js`) and report `{type:"clipboard"}` to Kotlin (`EditorEvent.Clipboard`), which writes the system clipboard; paste reads the clipboard in Kotlin and sends `pasteText`. The toolbar items Run, Save and Edit tools are `showAsAction="always"` (AppCompat allows only two `ifRoom` actions on a 360 dp phone); Search stays in the overflow menu.
+- **Line selection:** `lineNumbers({ domEventHandlers: { mousedown } })` selects the tapped line including its line break; the `selectLine` action does the same from the menu.
+- Not verified here: Kotlin compilation and device behaviour (no Android SDK in the authoring sandbox). 81 JS tests, `scripts/static-check.py`, XML and resource cross-checks pass.
+
 ## 0.1 Update: V1.0.0 (UI refresh and "Open with")
 
 - **Open with fix:** `AndroidManifest.xml` had no `VIEW`/`EDIT` intent filters, so ByteCode never appeared in Android's chooser. Two filters were added (`content`/`file` schemes with `*/*`, and the same without a MIME type). `MainActivity` handles the intent in `onCreate` (only when `savedInstanceState == null`) and in `onNewIntent`; a file that arrives while the previous session is still restoring is queued and opened after the restore so it stays the active tab.
