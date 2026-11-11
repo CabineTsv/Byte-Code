@@ -55,4 +55,6 @@ sealed class EditorEvent {
     data class Command(val name: String) : EditorEvent()
 
     data class Log(val level: String, val message: String) : EditorEvent()
+
+    data class Clipboard(val text: String, val cut: Boolean) : EditorEvent()
 }
